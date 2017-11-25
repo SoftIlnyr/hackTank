@@ -1,6 +1,7 @@
 package com.aci.student24.tanks;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.aci.student24.api.tanks.Algorithm;
 import com.aci.student24.api.tanks.objects.Base;
@@ -9,7 +10,6 @@ import com.aci.student24.api.tanks.objects.Tank;
 import com.aci.student24.api.tanks.state.Direction;
 import com.aci.student24.api.tanks.state.MapState;
 import com.aci.student24.api.tanks.state.TankMove;
-import javafx.geometry.Pos;
 
 public class TankPlayer1 implements Algorithm {
     private int teamId;
@@ -23,13 +23,19 @@ public class TankPlayer1 implements Algorithm {
 
     @Override
     public List<TankMove> nextMoves(MapState mapState) {
-        List<TankMove> tankMoves = new ArrayList<>();
-        mapState.getTanks(teamId).forEach(tank -> {
-            TankMove tankMove = new TankMove(tank.getId(), Direction.DOWN, false);
-            tankMoves.add(tankMove);
-        });
+        try {
+            List<TankMove> tankMoves = new ArrayList<>();
+            Position enemyBase = mapState.getBases().stream().filter(b -> b.getTeamId() != teamId).collect(Collectors.toList()).get(0);
+            mapState.getTanks(teamId).forEach(tank -> {
+                TankMove tankMove = getNextMoveForTank(tank, enemyBase);
+                tankMoves.add(tankMove);
+            });
 
-        return tankMoves;
+            return tankMoves;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     //стоять
@@ -149,7 +155,7 @@ public class TankPlayer1 implements Algorithm {
     }
 
     private boolean validBorder(int pointx, int pointy) {
-        return pointx >= 0 && pointx < matrix.length && pointy >= 0 && pointy < matrix[0].length
+        return pointx >= 0 && pointx < matrix.length && pointy >= 0 && pointy < matrix[0].length;
     }
 
     private TankMove getNextMoveForTank(Tank tank, Position finishPosition) {
